@@ -3,16 +3,15 @@ import os
 class CancelledError(Exception): pass
 
 def main():
-    information = dict()
+    print("\nStrážce seznamu\n")
     while True:
         try:
             enum_file = list(enumerate(list_dir(),start=1))
-            print("\nStrážce seznamu\n")
-            if len(list_dir()) > 1:
+            if len(list_dir()) > 0:
                 if len(list_dir()) < 10:
                     for n, f in enum_file:
                         print(f"{n:1}", f)
-                elif (10 <= len(list_dir()) < 100):
+                elif 10 <= len(list_dir()) < 100:
                     for n, f in enum_file:
                         print(f"{n:2}", f)
                 elif len(list_dir()) >= 100:
@@ -20,18 +19,17 @@ def main():
                         print(f"{n:3}", f)
                 cislo_seznamu = get_integer("Zadejte číslo seznamu nebo 0 pro nový", "číslo")
                 if cislo_seznamu == 0:
-                    new_file = get_string("Zadejte název nového seznamu:", "string")
+                    new_file = get_string("Zadejte název nového seznamu", "string")
                     if new_file and not new_file.endswith(".lst"):
                         new_file += ".lst"
                 else:
-                    process_list(cislo_seznamu)
-
+                    nazev_seznamu = enum_file[cislo_seznamu]
+                    process_list(nazev_seznamu)
             else:
                 new_file = get_string("Zadejte název nového seznamu", "string")
                 if new_file and not new_file.endswith(".lst"):
                     new_file += ".lst"
-                    cislo_seznamu = 0
-                    process_list(cislo_seznamu)
+                    process_list(nazev_seznamu=new_file)
         except CancelledError:
             print("Zrušeno")
 
@@ -39,13 +37,44 @@ def list_dir():
     file_lst = []
     for file in os.listdir("."):
         if file.endswith(".lst"):
-            file_lst = file_lst.append(file)
+            file_lst.append(file)
         else:
             continue
     return sorted(file_lst, key=str.lower)
 
-def process_list(cislo_seznamu):
-    print(cislo_seznamu)
+def process_list(nazev_seznamu):
+    fh = None
+    seznam_filmu=[]
+    try:
+        print(nazev_seznamu)
+        #fh = open(nazev_seznamu[1], "w", encoding="UTF-8")
+        #fh.close()
+        fh = open(nazev_seznamu[1], "r+", encoding="UTF-8")
+        seznam_filmu = fh.readlines()
+        if len(seznam_filmu) < 1:
+            print("Seznam je prázdný")
+            nazev_filmu = get_string("Zadejte název filmu", "název")
+            seznam_filmu.append(nazev_filmu)
+        else:
+            enum_list = list(enumerate(seznam_filmu, start=1))
+            if len(seznam_filmu) > 0:
+                if len(seznam_filmu) < 10:
+                    for c, m in enum_list:
+                        print(f"{c:1}", m)
+                elif 10 <= len(seznam_filmu) < 100:
+                    for c, m in enum_list:
+                        print(f"{c:2}", m)
+                elif len(seznam_filmu) >= 100:
+                    for c, m in enum_list:
+                        print(f"{c:3}", m)
+    except EnvironmentError as err:
+        print("ERROR", err)
+    else:
+        print("Uložen seznam", nazev_seznamu)
+    finally:
+        if fh is not None:
+            fh.close()
+
 
 def get_string(message, name="string", default=None,
                minimum_length=0, maximum_length=80):
