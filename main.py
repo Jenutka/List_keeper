@@ -6,24 +6,30 @@ def main():
     print("\nStrážce seznamu\n")
     while True:
         try:
-            enum_file = list(enumerate(list_dir(),start=1))
+            c_dir = []
+            enum_file = list(enumerate(list_dir(), start=1))
+            for c in range(1,len(list_dir())+1):
+                c_dir.append(c)
+            file_dict = dict(zip(c_dir, list_dir()))
             if len(list_dir()) > 0:
-                if len(list_dir()) < 10:
-                    for n, f in enum_file:
-                        print(f"{n:1}", f)
-                elif 10 <= len(list_dir()) < 100:
-                    for n, f in enum_file:
-                        print(f"{n:2}", f)
-                elif len(list_dir()) >= 100:
-                    for n, f in enum_file:
-                        print(f"{n:3}", f)
+                column_format(list_dir(), enum_file)
                 cislo_seznamu = get_integer("Zadejte číslo seznamu nebo 0 pro nový", "číslo")
                 if cislo_seznamu == 0:
                     new_file = get_string("Zadejte název nového seznamu", "string")
                     if new_file and not new_file.endswith(".lst"):
                         new_file += ".lst"
+                        nf = None
+                        try:
+                            nf = open(new_file, "w", encoding="utf8")
+                        except EnvironmentError as err:
+                            print("ERROR", err)
+                        else:
+                            print("Uložen seznam", new_file)
+                        finally:
+                            if nf is not None:
+                                nf.close()
                 else:
-                    nazev_seznamu = enum_file[cislo_seznamu]
+                    nazev_seznamu = file_dict.get(cislo_seznamu)
                     process_list(nazev_seznamu)
             else:
                 new_file = get_string("Zadejte název nového seznamu", "string")
@@ -32,6 +38,9 @@ def main():
                     process_list(nazev_seznamu=new_file)
         except CancelledError:
             print("Zrušeno")
+        except Exception:
+            print("Program ukončen")
+            break
 
 def list_dir():
     file_lst = []
@@ -47,34 +56,45 @@ def process_list(nazev_seznamu):
     seznam_filmu=[]
     try:
         print(nazev_seznamu)
-        #fh = open(nazev_seznamu[1], "w", encoding="UTF-8")
-        #fh.close()
-        fh = open(nazev_seznamu[1], "r+", encoding="UTF-8")
-        seznam_filmu = fh.readlines()
+        fh = open(nazev_seznamu, "r+", encoding="UTF-8")
+        for line in fh:
+            seznam_filmu.append(line.strip("\n"))
         if len(seznam_filmu) < 1:
             print("Seznam je prázdný")
-            nazev_filmu = get_string("Zadejte název filmu", "název")
-            seznam_filmu.append(nazev_filmu)
+            empty_list = get_string("[P]řidat [K]onec", "volba", default="p")
+            if empty_list.lower() == "p":
+                nazev_filmu = get_string("Zadejte název filmu", "název")
+                fh.write(nazev_filmu)
+            elif empty_list.lower() == "k":
+                raise Exception
         else:
             enum_list = list(enumerate(seznam_filmu, start=1))
             if len(seznam_filmu) > 0:
-                if len(seznam_filmu) < 10:
-                    for c, m in enum_list:
-                        print(f"{c:1}", m)
-                elif 10 <= len(seznam_filmu) < 100:
-                    for c, m in enum_list:
-                        print(f"{c:2}", m)
-                elif len(seznam_filmu) >= 100:
-                    for c, m in enum_list:
-                        print(f"{c:3}", m)
+                column_format(seznam_filmu, enum_list)
+            process_item() #upravit funkci pro zapis polozek do seznamu
     except EnvironmentError as err:
         print("ERROR", err)
+    except Exception:
+        raise
     else:
         print("Uložen seznam", nazev_seznamu)
     finally:
         if fh is not None:
             fh.close()
 
+def process_item():
+    pass
+
+def column_format(list_item, enum_item):
+    if len(list_item) < 10:
+        for n, f in enum_item:
+            print(f"{n:1}", f)
+    elif 10 <= len(list_item) < 100:
+        for n, f in enum_item:
+            print(f"{n:2}", f)
+    elif len(list_item) >= 100:
+        for n, f in enum_item:
+            print(f"{n:3}", f)
 
 def get_string(message, name="string", default=None,
                minimum_length=0, maximum_length=80):
