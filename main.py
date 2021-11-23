@@ -21,6 +21,8 @@ def main():
                         nf = None
                         try:
                             nf = open(new_file, "w", encoding="utf8")
+                            nf.close()
+                            process_list(new_file)
                         except EnvironmentError as err:
                             print("ERROR", err)
                         else:
@@ -32,6 +34,7 @@ def main():
                     nazev_seznamu = file_dict.get(cislo_seznamu)
                     process_list(nazev_seznamu)
             else:
+                print("Žádný seznam k dispozici")
                 new_file = get_string("Zadejte název nového seznamu", "string")
                 if new_file and not new_file.endswith(".lst"):
                     new_file += ".lst"
@@ -52,35 +55,70 @@ def list_dir():
     return sorted(file_lst, key=str.lower)
 
 def process_list(nazev_seznamu):
-    fh = None
-    seznam_filmu=[]
-    try:
-        print(nazev_seznamu)
-        fh = open(nazev_seznamu, "r+", encoding="UTF-8")
-        for line in fh:
-            seznam_filmu.append(line.strip("\n"))
-        if len(seznam_filmu) < 1:
-            print("Seznam je prázdný")
-            empty_list = get_string("[P]řidat [K]onec", "volba", default="p")
-            if empty_list.lower() == "p":
-                nazev_filmu = get_string("Zadejte název filmu", "název")
-                fh.write(nazev_filmu)
-            elif empty_list.lower() == "k":
-                raise Exception
-        else:
-            enum_list = list(enumerate(seznam_filmu, start=1))
-            if len(seznam_filmu) > 0:
+    saved = True
+    while True:
+        fh = None
+        seznam_filmu=[]
+        try:
+            print(nazev_seznamu)
+            fh = open(nazev_seznamu, "r+", encoding="UTF-8")
+            for line in fh:
+                seznam_filmu.append(line.strip("\n"))
+            if len(seznam_filmu) < 1:
+                print("Seznam je prázdný")
+                empty_list = get_string("[P]řidat [K]onec", "volba", default="p")
+                if empty_list.lower() == "p":
+                    nazev_filmu = get_string("Zadejte název filmu", "název")
+                    add_item(nazev_filmu)
+                    #fh.write(nazev_filmu)
+                elif empty_list.lower() == "k":
+                    raise Exception
+                else:
+                    print("Volba musí být [PpKk]")
+                    continue
+            else:
+                enum_list = list(enumerate(seznam_filmu, start=1))
                 column_format(seznam_filmu, enum_list)
-            process_item() #upravit funkci pro zapis polozek do seznamu
-    except EnvironmentError as err:
-        print("ERROR", err)
-    except Exception:
-        raise
-    else:
-        print("Uložen seznam", nazev_seznamu)
-    finally:
-        if fh is not None:
-            fh.close()
+                if saved:
+                    full_list = get_string("[P]řidat [V]ymazat [K]onec", "volba", default="p")
+                    if full_list.lower() == "p":
+                        nazev_filmu = get_string("Zadejte název filmu", "název")
+                        add_item(nazev_filmu) #upravit funkci pro zapis polozek do seznamu
+                        saved=False
+                    elif full_list.lower() == "v":
+                        del_item()
+                        saved=False
+                    elif full_list.lower() == "k":
+                        raise Exception
+                if not saved:
+                    full_list = get_string("[P]řidat [V]ymazat [U]ložit [K]onec", "volba", default="p")
+                    if full_list.lower() == "p":
+                        nazev_filmu = get_string("Zadejte název filmu", "název")
+                        add_item(nazev_filmu)  # upravit funkci pro zapis polozek do seznamu
+                        saved = False
+                    elif full_list.lower() == "v":
+                        item_num = get_integer("Zadejte číslo filmu", "číslo")
+                        del_item(item_num)
+                        saved = False
+                    elif full_list.lower() == "u":
+                        fh.write(str(seznam_filmu))
+                        saved = True
+                    elif full_list.lower() == "k":
+                        raise Exception
+                    else:
+                        print("Volba musí být [PpVvUuKk]")
+                        continue
+
+
+        except EnvironmentError as err:
+            print("ERROR", err)
+        except Exception:
+            raise
+        else:
+            print("Uložen seznam", nazev_seznamu)
+        finally:
+            if fh is not None:
+                fh.close()
 
 def process_item():
     pass
