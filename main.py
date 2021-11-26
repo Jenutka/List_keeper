@@ -88,9 +88,23 @@ def process_list(nazev_seznamu):
                     if full_list.lower() == "p":
                         nazev_filmu = get_string("Zadejte název filmu", "název")
                         seznam_filmu.append(nazev_filmu)
+                        enum_list = list(enumerate(seznam_filmu, start=1))
+                        column_format(seznam_filmu, enum_list)
                         saved=False
                     elif full_list.lower() == "v":
-                        del_item()
+                        c_list=[]
+                        for c in range(1, len(seznam_filmu) + 1):
+                            c_list.append(c)
+                        list_dict = dict(zip(c_list, seznam_filmu))
+                        print(seznam_filmu)
+                        print(list_dict)
+                        cislo_filmu = get_integer("Zadejte číslo seznamu", "číslo")
+                        list_item = list_dict.get(cislo_filmu)
+                        seznam_filmu.remove(list_item)
+                        print(seznam_filmu)
+                        enum_list = list(enumerate(seznam_filmu, start=1))
+                        print(enum_list)
+                        column_format(seznam_filmu,enum_list)
                         saved=False
                     elif full_list.lower() == "k":
                         raise Exception
@@ -99,16 +113,23 @@ def process_list(nazev_seznamu):
                         continue
                 if not saved:
                     full_list = get_string("[P]řidat [V]ymazat [U]ložit [K]onec", "volba", default="p")
-                    if full_list.lower() == "p": #nevypisuje seznam filmu, opravit
+                    if full_list.lower() == "p": # nevypisuje seznam filmu, opravit
                         nazev_filmu = get_string("Zadejte název filmu", "název")
                         seznam_filmu.append(nazev_filmu)
                         saved = False
                     elif full_list.lower() == "v":
-                        item_num = get_integer("Zadejte číslo filmu", "číslo")
-                        del_item(item_num)
+                        c_list = []
+                        for c in range(1, len(seznam_filmu) + 1):
+                            c_list.append(c)
+                        list_dict = dict(zip(c_list, seznam_filmu))
+                        cislo_filmu = get_integer("Zadejte číslo seznamu", "číslo")
+                        list_item = list_dict.get(cislo_filmu)
+                        seznam_filmu.remove(list_item)
+                        enum_list = list(enumerate(seznam_filmu, start=1))
+                        column_format(seznam_filmu, enum_list)
                         saved = False
                     elif full_list.lower() == "u":
-                        fh.write(str(seznam_filmu)) #ukládá seznam prvků na konec, opravit
+                        fh.write(seznam_filmu) # neukládá, vymazal jsem str"", dříve ukládalo
                         saved = True
                     elif full_list.lower() == "k":
                         raise CancelledError
