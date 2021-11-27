@@ -61,9 +61,10 @@ def process_list(nazev_seznamu):
     seznam_filmu=[]
     try:
         print(nazev_seznamu)
-        fh = open(nazev_seznamu, "r+", encoding="UTF-8")
+        fh = open(nazev_seznamu, encoding="UTF-8")
         while True:
             if saved:
+                seznam_filmu=[]
                 for line in fh:
                     seznam_filmu.append(line.strip("\n"))
             else:
@@ -96,14 +97,10 @@ def process_list(nazev_seznamu):
                         for c in range(1, len(seznam_filmu) + 1):
                             c_list.append(c)
                         list_dict = dict(zip(c_list, seznam_filmu))
-                        print(seznam_filmu)
-                        print(list_dict)
-                        cislo_filmu = get_integer("Zadejte číslo seznamu", "číslo")
+                        cislo_filmu = get_integer("Zadejte číslo filmu", "číslo")
                         list_item = list_dict.get(cislo_filmu)
                         seznam_filmu.remove(list_item)
-                        print(seznam_filmu)
                         enum_list = list(enumerate(seznam_filmu, start=1))
-                        print(enum_list)
                         column_format(seznam_filmu,enum_list)
                         saved=False
                     elif full_list.lower() == "k":
@@ -129,7 +126,11 @@ def process_list(nazev_seznamu):
                         column_format(seznam_filmu, enum_list)
                         saved = False
                     elif full_list.lower() == "u":
-                        fh.write(seznam_filmu) # neukládá, vymazal jsem str"", dříve ukládalo
+                        fh = open(nazev_seznamu, "w", encoding="UTF-8")
+                        for items in seznam_filmu:
+                            fh.writelines(items+"\n") # vypisuje dvakrát seznam filmů, v souboru pouze jednou
+                        print("seznam filmů uložen")
+                        fh = open(nazev_seznamu, encoding="UTF-8")
                         saved = True
                     elif full_list.lower() == "k":
                         raise CancelledError
