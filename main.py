@@ -21,14 +21,15 @@ def main():
                         nf = None
                         try:
                             nf = open(new_file, "w", encoding="utf8")
-                            nf.close()
+#                            nf.close()
                             process_list(new_file)
                         except EnvironmentError as err:
                             print("ERROR", err)
-                        else:
-                            print("Uložen seznam", new_file)
+#                        else:
+#                            print(f"Uložen nový seznam {new_file}") # neprintuje
                         finally:
                             if nf is not None:
+                                print(f"Uložen nový seznam {new_file}")  # neprintuje
                                 nf.close()
                 else:
                     nazev_seznamu = file_dict.get(cislo_seznamu)
@@ -65,22 +66,25 @@ def process_list(nazev_seznamu):
         while True:
             if saved:
                 seznam_filmu=[]
+                fh = open(nazev_seznamu, encoding="UTF-8")
                 for line in fh:
                     seznam_filmu.append(line.strip("\n"))
-            else:
-                continue
             if len(seznam_filmu) < 1:
                 print("Seznam je prázdný")
                 empty_list = get_string("[P]řidat [K]onec", "volba", default="p")
                 if empty_list.lower() == "p":
+                    seznam_filmu = []   #vytvořen nový prázdný seznam
                     nazev_filmu = get_string("Zadejte název filmu", "název")
-                    seznam_filmu.append(nazev_filmu) #zamrzne
-                    saved=False
+                    seznam_filmu.append(nazev_filmu)
+                    seznam_filmu = list(dict.fromkeys(seznam_filmu))
+                    enum_list = list(enumerate(seznam_filmu, start=1))
+                    column_format(seznam_filmu, enum_list)
+                    saved = False
                 elif empty_list.lower() == "k":
                     raise CancelledError
                 else:
                     print("Volba musí být [PpKk]")
-                    continue
+                    saved = False
             else:
                 enum_list = list(enumerate(seznam_filmu, start=1))
                 column_format(seznam_filmu, enum_list)
@@ -89,6 +93,7 @@ def process_list(nazev_seznamu):
                     if full_list.lower() == "p":
                         nazev_filmu = get_string("Zadejte název filmu", "název")
                         seznam_filmu.append(nazev_filmu)
+                        seznam_filmu = list(dict.fromkeys(seznam_filmu))
                         enum_list = list(enumerate(seznam_filmu, start=1))
                         column_format(seznam_filmu, enum_list)
                         saved=False
@@ -101,16 +106,18 @@ def process_list(nazev_seznamu):
                         list_item = list_dict.get(cislo_filmu)
                         seznam_filmu.remove(list_item)
                         enum_list = list(enumerate(seznam_filmu, start=1))
+                        seznam_filmu = list(dict.fromkeys(seznam_filmu))
                         column_format(seznam_filmu,enum_list)
                         saved=False
                     elif full_list.lower() == "k":
                         raise Exception
                     else:
                         print("Volba musí být [PpVvKk]")
+                        saved = True
                         continue
                 if not saved:
                     full_list = get_string("[P]řidat [V]ymazat [U]ložit [K]onec", "volba", default="p")
-                    if full_list.lower() == "p": # nevypisuje seznam filmu, opravit
+                    if full_list.lower() == "p":
                         nazev_filmu = get_string("Zadejte název filmu", "název")
                         seznam_filmu.append(nazev_filmu)
                         saved = False
@@ -123,12 +130,13 @@ def process_list(nazev_seznamu):
                         list_item = list_dict.get(cislo_filmu)
                         seznam_filmu.remove(list_item)
                         enum_list = list(enumerate(seznam_filmu, start=1))
-                        column_format(seznam_filmu, enum_list)
+#                        column_format(seznam_filmu, enum_list)
                         saved = False
                     elif full_list.lower() == "u":
                         fh = open(nazev_seznamu, "w", encoding="UTF-8")
                         for items in seznam_filmu:
-                            fh.writelines(items+"\n") # vypisuje dvakrát seznam filmů, v souboru pouze jednou
+                            fh.writelines(items+"\n")
+                        fh.close()
                         print("seznam filmů uložen")
                         fh = open(nazev_seznamu, encoding="UTF-8")
                         saved = True
@@ -136,6 +144,7 @@ def process_list(nazev_seznamu):
                         raise CancelledError
                     else:
                         print("Volba musí být [PpVvUuKk]")
+                        saved = False
                         continue
     except EnvironmentError as err:
         print("ERROR", err)
