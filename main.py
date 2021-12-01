@@ -21,15 +21,12 @@ def main():
                         nf = None
                         try:
                             nf = open(new_file, "w", encoding="utf8")
-#                            nf.close()
+                            print(f"Uložen nový seznam {new_file}")
                             process_list(new_file)
                         except EnvironmentError as err:
                             print("ERROR", err)
-#                        else:
-#                            print(f"Uložen nový seznam {new_file}") # neprintuje
                         finally:
                             if nf is not None:
-                                print(f"Uložen nový seznam {new_file}")  # neprintuje
                                 nf.close()
                 else:
                     nazev_seznamu = file_dict.get(cislo_seznamu)
@@ -41,9 +38,6 @@ def main():
                     new_file += ".lst"
                     process_list(nazev_seznamu=new_file)
         except CancelledError:
-            print("Zrušeno")
-            break
-        except Exception:
             print("Program ukončen")
             break
 
@@ -76,11 +70,17 @@ def process_list(nazev_seznamu):
                     seznam_filmu = []   #vytvořen nový prázdný seznam
                     nazev_filmu = get_string("Zadejte název filmu", "název")
                     seznam_filmu.append(nazev_filmu)
-                    seznam_filmu = list(dict.fromkeys(seznam_filmu))
-                    enum_list = list(enumerate(seznam_filmu, start=1))
-                    column_format(seznam_filmu, enum_list)
+                    seznam_filmu = sorted(list(dict.fromkeys(seznam_filmu)), key=str.lower)
                     saved = False
                 elif empty_list.lower() == "k":
+                    if not saved:
+                        save_before_close = get_string("Uložit před ukončením? A/N", "string", default="N")
+                        if save_before_close.lower() == "a":
+                            fh = open(nazev_seznamu, "w", encoding="UTF-8")
+                            for items in seznam_filmu:
+                                fh.writelines(items + "\n")
+                            fh.close()
+                            print(f"uložen seznam filmů {nazev_seznamu}")
                     raise CancelledError
                 else:
                     print("Volba musí být [PpKk]")
@@ -93,7 +93,7 @@ def process_list(nazev_seznamu):
                     if full_list.lower() == "p":
                         nazev_filmu = get_string("Zadejte název filmu", "název")
                         seznam_filmu.append(nazev_filmu)
-                        seznam_filmu = list(dict.fromkeys(seznam_filmu))
+                        seznam_filmu = sorted(list(dict.fromkeys(seznam_filmu)), key=str.lower)
                         enum_list = list(enumerate(seznam_filmu, start=1))
                         column_format(seznam_filmu, enum_list)
                         saved=False
@@ -110,7 +110,7 @@ def process_list(nazev_seznamu):
                         column_format(seznam_filmu,enum_list)
                         saved=False
                     elif full_list.lower() == "k":
-                        raise Exception
+                        raise CancelledError
                     else:
                         print("Volba musí být [PpVvKk]")
                         saved = True
@@ -120,6 +120,7 @@ def process_list(nazev_seznamu):
                     if full_list.lower() == "p":
                         nazev_filmu = get_string("Zadejte název filmu", "název")
                         seznam_filmu.append(nazev_filmu)
+                        seznam_filmu = sorted(list(dict.fromkeys(seznam_filmu)), key=str.lower)
                         saved = False
                     elif full_list.lower() == "v":
                         c_list = []
@@ -129,29 +130,39 @@ def process_list(nazev_seznamu):
                         cislo_filmu = get_integer("Zadejte číslo seznamu", "číslo")
                         list_item = list_dict.get(cislo_filmu)
                         seznam_filmu.remove(list_item)
-                        enum_list = list(enumerate(seznam_filmu, start=1))
-#                        column_format(seznam_filmu, enum_list)
                         saved = False
                     elif full_list.lower() == "u":
                         fh = open(nazev_seznamu, "w", encoding="UTF-8")
                         for items in seznam_filmu:
                             fh.writelines(items+"\n")
                         fh.close()
-                        print("seznam filmů uložen")
+                        print(f"uložen seznam filmů {nazev_seznamu}")
                         fh = open(nazev_seznamu, encoding="UTF-8")
                         saved = True
                     elif full_list.lower() == "k":
-                        raise CancelledError
+                        save_before_close = get_string("Uložit před ukončením? A/N", "string", default="N")
+                        if save_before_close.lower() == "a":
+                            fh = open(nazev_seznamu, "w", encoding="UTF-8")
+                            for items in seznam_filmu:
+                                fh.writelines(items + "\n")
+                            fh.close()
+                            print(f"uložen seznam filmů {nazev_seznamu} ({len(seznam_filmu)} prvků)")
+                            raise CancelledError
+                        elif save_before_close.lower() == "n":
+                            raise CancelledError
+                        else:
+                            print("Volba musí být [AaNn]")
+                            saved = False
+                            continue
                     else:
                         print("Volba musí být [PpVvUuKk]")
                         saved = False
                         continue
     except EnvironmentError as err:
         print("ERROR", err)
+        raise
     except CancelledError:
         raise
-    else:
-        print("Uložen seznam", nazev_seznamu)
     finally:
         if fh is not None:
             fh.close()
